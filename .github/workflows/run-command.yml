@@ -1,0 +1,42 @@
+name: Run dispatch command
+on:
+  workflow_dispatch:
+    inputs:
+      comment-id:
+        description: 'comment id'
+        required: true
+      file:
+        description: 'file'
+        required: true
+        default: 'main'
+      network:
+        description: 'network'
+        required: true
+        default: 'eth'
+      fn:
+        description: 'function'
+        required: true
+      send:
+        description: 'send'
+        required: false
+        default: 'false'
+      pull_request_number:
+        description: 'pr'
+        required: true
+      delete-branch-after-send:
+        description: 'del'
+        required: false
+        default: 'true'
+
+jobs:
+  dispatchCommand:
+    uses: ./.github/workflows/robo.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+      comment-id: ${{ github.event.inputs.comment-id }}
+      file: ${{ github.event.inputs.file }}
+      network: ${{ github.event.inputs.network }}
+      fn: ${{ github.event.inputs.fn }}
+      send: ${{ github.event.inputs.send }}
+      pull_request_number: ${{ github.event.inputs.pull_request_number }}
+    secrets: inherit
