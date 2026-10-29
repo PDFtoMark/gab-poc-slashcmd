@@ -1,0 +1,39 @@
+on:
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
+      comment-id:
+        required: true
+        type: string
+      file:
+        required: true
+        type: string
+      network:
+        required: true
+        type: string
+      fn:
+        required: true
+        type: string
+      send:
+        required: true
+        type: string
+      pull_request_number:
+        required: true
+        type: string
+    secrets:
+      FAKE_PRIVATE_KEY:
+        required: true
+
+jobs:
+  roboanimalsWorkflow:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run Function
+      env:
+        FAKE_PRIVATE_KEY: ${{ secrets.FAKE_PRIVATE_KEY }}
+        GITHUB_ACTION_SEND: ${{ inputs.send }}
+      run: |
+        python3 -m multisig_ci brownie run -r ${{ inputs.file }} ${{ inputs.fn }} --network ${{ inputs.network }}-main-fork || true
+        echo "step done"
