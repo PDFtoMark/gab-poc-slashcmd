@@ -1,0 +1,30 @@
+name: Slash Command Dispatch PoC
+on:
+  issue_comment:
+    types: [created]
+permissions: {}
+jobs:
+  slashCommandDispatch:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open'
+    steps:
+      - name: Slash Command Dispatch
+        id: scd
+        uses: peter-evans/slash-command-dispatch@9bdcd7914ec1b75590b790b844aa3b8eee7c683a # v5.0.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          reaction-token: ${{ secrets.GITHUB_TOKEN }}
+          config: >
+            [
+              {
+                "command": "deploy-review",
+                "permission": "write",
+                "issue_type": "pull-request",
+                "repository": "PDFtoMark/gab-poc-slashcmd",
+                "static_args": [
+                  "application=${{ github.event.repository.name }}"
+                ]
+              }
+            ]
