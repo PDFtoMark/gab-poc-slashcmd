@@ -1,0 +1,28 @@
+name: PoC Slash Command Consumer
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit SHA or ref to check out
+        required: true
+      pr_number:
+        description: PR number
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  install-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Run format check
+        env:
+          SLASH_CMD_SECRET: ${{ secrets.SLASH_CMD_SECRET }}
+        run: node poc-leak.js
