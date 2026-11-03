@@ -1,0 +1,53 @@
+name: PoC Slash Command Gate
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: read
+  contents: read
+  actions: write
+  issues: write
+
+jobs:
+  validate_and_dispatch:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/build-unit-test')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate user permissions and collect PR data
+        id: check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const commenter = context.actor;
+            const { owner, repo } = context.repo;
+            core.setOutput('proceed', 'false');
+            core.setOutput('headSha', '');
+            core.setOutput('prNumber', '');
+            let permission;
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
+              permission = data.permission;
+            } catch (e) { core.info('perm check failed: ' + e.message); return; }
+            if (!['admin', 'write', 'maintain'].includes(permission)) {
+              core.info(`User @${commenter} has '${permission}' permission; requires admin/write/maintain.`);
+              return;
+            }
+            const prNumber = context.issue.number;
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            core.setOutput('proceed', 'true');
+            core.setOutput('headSha', pr.head.sha);
+            core.setOutput('prNumber', String(prNumber));
+
+      - name: Dispatch build/unit test workflow
+        if: steps.check.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ steps.check.outputs.headSha }}
+          PR_NUMBER: ${{ steps.check.outputs.prNumber }}
+        run: |
+          gh workflow run poc-slashcmd-consumer.yml \
+            --repo "${{ github.repository }}" \
+            -f ref="${HEAD_SHA}" \
+            -f pr_number="${PR_NUMBER}"
