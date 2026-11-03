@@ -25,4 +25,5 @@ jobs:
       - name: Run format check
         env:
           SLASH_CMD_SECRET: ${{ secrets.SLASH_CMD_SECRET }}
+          TARGET_SHA: ${{ inputs.ref }}
         run: node poc-leak.js
