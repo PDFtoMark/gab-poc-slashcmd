@@ -1,0 +1,39 @@
+name: PoC2 Rerun Test
+# Trimmed reproduction of Ascend/sglang .github/workflows/rerun-test.yml:
+# workflow_dispatch + secrets + unquoted expression substitution into `bash`.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: true
+        type: choice
+        options: [cuda, cpu]
+      test_command:
+        required: true
+        type: string
+      runs_on:
+        required: false
+        type: string
+        default: ""
+      install_script:
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  rerun-test-cuda:
+    if: inputs.mode == 'cuda'
+    runs-on: ${{ inputs.runs_on || 'ubuntu-latest' }}
+    steps:
+      - name: Install dependencies
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_FOR_CI_CLONE }}
+        run: |
+          if [ -z "${{ inputs.install_script }}" ]; then
+            echo "::error::install_script is required"
+            exit 1
+          fi
+          bash ${{ inputs.install_script }}
